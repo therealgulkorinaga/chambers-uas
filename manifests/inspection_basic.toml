@@ -1,0 +1,75 @@
+[meta]
+version = "1.0"
+mission_type = "infrastructure_inspection"
+operator_id = "OP-2026-00142"
+created = "2026-04-08T10:00:00Z"
+manifest_hash = ""
+
+[regulatory]
+remote_id = true
+jurisdiction = "US"
+operation_category = "part_107"
+
+[default]
+action = "BURN"
+
+[[stakeholder]]
+id = "operator"
+name = "AcmeDrone Services LLC"
+public_key = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
+role = "operator"
+
+[[stakeholder]]
+id = "client"
+name = "PowerGrid Corp"
+public_key = "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB="
+role = "client"
+
+[[preserve]]
+id = "rule-001"
+data_category = "thermal_imagery"
+sensor = "camera_thermal"
+for_stakeholder = "client"
+format = "radiometric_tiff"
+retention = "90d"
+justification = "Contracted inspection deliverable"
+
+[[preserve]]
+id = "rule-002"
+data_category = "eo_imagery"
+sensor = "camera_eo"
+for_stakeholder = "client"
+format = "jpeg"
+retention = "90d"
+justification = "Visual inspection deliverable"
+
+[[preserve]]
+id = "rule-003"
+data_category = "flight_telemetry"
+sensor = "flight_controller"
+for_stakeholder = "operator"
+retention = "365d"
+justification = "Operational records and maintenance"
+
+[[preserve]]
+id = "rule-004"
+data_category = "remote_id"
+sensor = "remote_id_broadcast"
+for_stakeholder = "public"
+format = "cleartext"
+transmission = "real_time"
+retention = "0"
+justification = "14 CFR Part 89 compliance"
+
+[[network_flow]]
+id = "flow-001"
+destination = "gcs"
+protocol = "websocket"
+host = "172.20.0.100"
+port = 8080
+data_category = "telemetry_subset"
+justification = "Real-time flight monitoring"
+
+[system_allowlist]
+platform = "simulation"
+processes = ["v4l2-compliance", "gst-launch-1.0"]

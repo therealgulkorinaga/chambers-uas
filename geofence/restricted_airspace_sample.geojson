@@ -1,0 +1,28 @@
+{
+  "type": "FeatureCollection",
+  "name": "restricted_airspace_sample",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Restricted Zone - Unit Test",
+        "zone_type": "restricted",
+        "airspace_class": "B",
+        "floor_ft_msl": 0,
+        "ceiling_ft_msl": 10000
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [8.550000, 47.400000],
+            [8.555000, 47.400000],
+            [8.555000, 47.395000],
+            [8.550000, 47.395000],
+            [8.550000, 47.400000]
+          ]
+        ]
+      }
+    }
+  ]
+}

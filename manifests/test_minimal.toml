@@ -1,0 +1,38 @@
+[meta]
+version = "1.0"
+mission_type = "test_flight"
+operator_id = "OP-2026-00001"
+created = "2026-04-08T10:00:00Z"
+manifest_hash = ""
+
+[regulatory]
+remote_id = true
+jurisdiction = "US"
+operation_category = "part_107"
+
+[default]
+action = "BURN"
+
+[[stakeholder]]
+id = "operator"
+name = "Test Operator"
+public_key = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
+role = "operator"
+
+[[preserve]]
+id = "rule-001"
+data_category = "flight_telemetry"
+sensor = "flight_controller"
+for_stakeholder = "operator"
+retention = "30d"
+justification = "Minimum operational record keeping"
+
+[[preserve]]
+id = "rule-002"
+data_category = "remote_id"
+sensor = "remote_id_broadcast"
+for_stakeholder = "public"
+format = "cleartext"
+transmission = "real_time"
+retention = "0"
+justification = "14 CFR Part 89 compliance"

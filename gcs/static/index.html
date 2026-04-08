@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chambers GCS</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: "Courier New", Courier, monospace;
+            background: #0a0a0a;
+            color: #c0c0c0;
+            padding: 16px;
+        }
+
+        h1 {
+            color: #00cc66;
+            font-size: 1.4em;
+            margin-bottom: 4px;
+        }
+
+        .subtitle {
+            color: #666;
+            font-size: 0.85em;
+            margin-bottom: 16px;
+        }
+
+        .connection-status {
+            display: inline-block;
+            padding: 2px 10px;
+            border-radius: 3px;
+            font-size: 0.8em;
+            margin-bottom: 16px;
+        }
+
+        .status-connected {
+            background: #003300;
+            color: #00cc66;
+            border: 1px solid #00cc66;
+        }
+
+        .status-disconnected {
+            background: #330000;
+            color: #cc3333;
+            border: 1px solid #cc3333;
+        }
+
+        .status-connecting {
+            background: #332200;
+            color: #ccaa00;
+            border: 1px solid #ccaa00;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: auto auto;
+            gap: 12px;
+        }
+
+        .panel {
+            background: #111;
+            border: 1px solid #333;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .panel-header {
+            background: #1a1a1a;
+            padding: 8px 12px;
+            font-size: 0.9em;
+            color: #00cc66;
+            border-bottom: 1px solid #333;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .panel-header .count {
+            background: #222;
+            color: #888;
+            padding: 1px 8px;
+            border-radius: 10px;
+            font-size: 0.8em;
+        }
+
+        .panel-body {
+            padding: 8px;
+            height: 250px;
+            overflow-y: auto;
+            font-size: 0.8em;
+            line-height: 1.5;
+        }
+
+        .panel-body pre {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .entry {
+            padding: 3px 6px;
+            border-bottom: 1px solid #1a1a1a;
+        }
+
+        .entry:hover {
+            background: #1a1a1a;
+        }
+
+        .entry .timestamp {
+            color: #666;
+        }
+
+        .entry .type-info {
+            color: #3399ff;
+        }
+
+        .entry .type-warning {
+            color: #ccaa00;
+        }
+
+        .entry .type-error {
+            color: #cc3333;
+        }
+
+        .entry .type-sealed {
+            color: #cc66ff;
+        }
+
+        .entry .type-anomaly {
+            color: #ff6633;
+        }
+
+        .empty-state {
+            color: #444;
+            text-align: center;
+            padding-top: 80px;
+        }
+
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>Chambers GCS</h1>
+    <div class="subtitle">Ground Control Station - Real-time Monitor</div>
+    <div id="connectionStatus" class="connection-status status-disconnected">DISCONNECTED</div>
+
+    <div class="grid">
+        <div class="panel">
+            <div class="panel-header">
+                Session Status
+                <span id="sessionCount" class="count">--</span>
+            </div>
+            <div class="panel-body" id="sessionPanel">
+                <div class="empty-state">No session data</div>
+            </div>
+        </div>
+
+        <div class="panel">
+            <div class="panel-header">
+                Audit Log
+                <span id="auditCount" class="count">0</span>
+            </div>
+            <div class="panel-body" id="auditPanel">
+                <div class="empty-state">Waiting for audit entries...</div>
+            </div>
+        </div>
+
+        <div class="panel">
+            <div class="panel-header">
+                Sealed Events
+                <span id="sealedCount" class="count">0</span>
+            </div>
+            <div class="panel-body" id="sealedPanel">
+                <div class="empty-state">No sealed events</div>
+            </div>
+        </div>
+
+        <div class="panel">
+            <div class="panel-header">
+                Anomalies
+                <span id="anomalyCount" class="count">0</span>
+            </div>
+            <div class="panel-body" id="anomalyPanel">
+                <div class="empty-state">No anomalies detected</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            var ws = null;
+            var auditEntries = [];
+            var sealedEvents = [];
+            var anomalies = [];
+
+            var statusEl = document.getElementById("connectionStatus");
+            var sessionPanel = document.getElementById("sessionPanel");
+            var auditPanel = document.getElementById("auditPanel");
+            var sealedPanel = document.getElementById("sealedPanel");
+            var anomalyPanel = document.getElementById("anomalyPanel");
+            var auditCountEl = document.getElementById("auditCount");
+            var sealedCountEl = document.getElementById("sealedCount");
+            var anomalyCountEl = document.getElementById("anomalyCount");
+            var sessionCountEl = document.getElementById("sessionCount");
+
+            function setStatus(state) {
+                statusEl.className = "connection-status status-" + state;
+                statusEl.textContent = state.toUpperCase();
+            }
+
+            function formatTimestamp(ts) {
+                if (!ts) return "";
+                try {
+                    var d = new Date(ts);
+                    return d.toLocaleTimeString();
+                } catch(e) {
+                    return String(ts);
+                }
+            }
+
+            function escapeHtml(str) {
+                var div = document.createElement("div");
+                div.appendChild(document.createTextNode(str));
+                return div.innerHTML;
+            }
+
+            function renderEntry(data, typeClass) {
+                var ts = formatTimestamp(data.timestamp || data.trigger_timestamp);
+                var label = data.entry_type || data.event_type || data.pattern || data.type || "event";
+                return '<div class="entry">' +
+                    '<span class="timestamp">' + escapeHtml(ts) + '</span> ' +
+                    '<span class="' + typeClass + '">[' + escapeHtml(label) + ']</span> ' +
+                    escapeHtml(JSON.stringify(data).substring(0, 200)) +
+                    '</div>';
+            }
+
+            function appendToPanel(panel, html, countEl, count) {
+                if (count === 1) {
+                    panel.innerHTML = "";
+                }
+                panel.innerHTML += html;
+                panel.scrollTop = panel.scrollHeight;
+                countEl.textContent = String(count);
+            }
+
+            function handleMessage(msg) {
+                var type = msg.type || "";
+
+                if (type === "connected") {
+                    return;
+                }
+
+                if (type === "session" || type === "session_update") {
+                    sessionPanel.innerHTML = '<pre>' + escapeHtml(JSON.stringify(msg, null, 2)) + '</pre>';
+                    sessionCountEl.textContent = msg.state || "active";
+                    return;
+                }
+
+                if (type === "audit" || type === "audit_entry") {
+                    auditEntries.push(msg);
+                    appendToPanel(auditPanel, renderEntry(msg, "type-info"), auditCountEl, auditEntries.length);
+                    return;
+                }
+
+                if (type === "sealed" || type === "sealed_event") {
+                    sealedEvents.push(msg);
+                    appendToPanel(sealedPanel, renderEntry(msg, "type-sealed"), sealedCountEl, sealedEvents.length);
+                    return;
+                }
+
+                if (type === "anomaly") {
+                    anomalies.push(msg);
+                    appendToPanel(anomalyPanel, renderEntry(msg, "type-anomaly"), anomalyCountEl, anomalies.length);
+                    return;
+                }
+
+                // Generic / unknown event - show in audit panel
+                auditEntries.push(msg);
+                appendToPanel(auditPanel, renderEntry(msg, "type-warning"), auditCountEl, auditEntries.length);
+            }
+
+            function connect() {
+                setStatus("connecting");
+
+                var protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+                var host = window.location.host || "localhost:8080";
+                var url = protocol + "//" + host + "/ws";
+
+                ws = new WebSocket(url);
+
+                ws.onopen = function() {
+                    setStatus("connected");
+                };
+
+                ws.onmessage = function(event) {
+                    try {
+                        var msg = JSON.parse(event.data);
+                        handleMessage(msg);
+                    } catch(e) {
+                        console.error("Failed to parse WebSocket message:", e);
+                    }
+                };
+
+                ws.onerror = function() {
+                    setStatus("disconnected");
+                };
+
+                ws.onclose = function() {
+                    setStatus("disconnected");
+                    // Reconnect after 3 seconds
+                    setTimeout(connect, 3000);
+                };
+            }
+
+            connect();
+        })();
+    </script>
+</body>
+</html>

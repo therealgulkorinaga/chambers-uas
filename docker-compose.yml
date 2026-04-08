@@ -1,0 +1,94 @@
+version: "3.9"
+
+networks:
+  chambers_net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
+volumes:
+  session_storage:
+    driver: local
+    driver_opts:
+      type: tmpfs
+      device: tmpfs
+      o: size=2g
+
+services:
+  px4-sitl:
+    image: px4io/px4-dev-simulation-focal
+    container_name: px4-sitl
+    ports:
+      - "14540:14540/udp"
+      - "14550:14550/udp"
+    environment:
+      PX4_SIM_MODEL: gz_x500_cam
+    networks:
+      - chambers_net
+
+  chambers-module:
+    build:
+      context: ./chambers
+      dockerfile: Dockerfile
+    container_name: chambers-module
+    cap_add:
+      - NET_ADMIN
+      - SYS_ADMIN
+    devices:
+      - /dev/video10:/dev/video10
+    volumes:
+      - ./manifests:/manifests
+      - ./audit_logs:/audit_logs
+      - session_storage:/session:rw
+    environment:
+      CHAMBERS_MANIFEST: /manifests/default.toml
+      PX4_HOST: px4-sitl
+      PX4_PORT: "14540"
+      V4L2_DEVICE: /dev/video10
+      GCS_ENDPOINT: http://gcs:8080
+    depends_on:
+      - px4-sitl
+      - v4l2-bridge
+    networks:
+      - chambers_net
+
+  v4l2-bridge:
+    build:
+      context: ./bridge
+      dockerfile: Dockerfile
+    container_name: v4l2-bridge
+    devices:
+      - /dev/video10:/dev/video10
+    depends_on:
+      - px4-sitl
+    environment:
+      V4L2_DEVICE: /dev/video10
+      GAZEBO_CAMERA_TOPIC: ""
+    networks:
+      - chambers_net
+
+  gcs:
+    build:
+      context: ./gcs
+      dockerfile: Dockerfile
+    container_name: gcs
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./audit_logs:/audit_logs:ro
+      - ./manifests:/manifests
+    networks:
+      - chambers_net
+
+  rogue-process:
+    build:
+      context: ./test/rogue
+      dockerfile: Dockerfile
+    container_name: rogue-process
+    devices:
+      - /dev/video10:/dev/video10
+    profiles:
+      - testing
+    networks:
+      - chambers_net

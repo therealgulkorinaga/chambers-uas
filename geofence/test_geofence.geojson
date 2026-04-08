@@ -1,0 +1,82 @@
+{
+  "type": "FeatureCollection",
+  "name": "test_geofence",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Permitted Flight Area - Zurich Test",
+        "zone_type": "permitted",
+        "airspace_class": "G",
+        "floor_ft_msl": 0,
+        "ceiling_ft_msl": 400
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [8.539094, 47.401242],
+            [8.545594, 47.402242],
+            [8.552094, 47.401242],
+            [8.553094, 47.397742],
+            [8.552094, 47.394242],
+            [8.545594, 47.393242],
+            [8.539094, 47.394242],
+            [8.537094, 47.397742],
+            [8.539094, 47.401242]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Class B Restricted Zone - Simulated",
+        "zone_type": "restricted",
+        "airspace_class": "B",
+        "floor_ft_msl": 0,
+        "ceiling_ft_msl": 10000
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [8.552594, 47.404742],
+            [8.556594, 47.404742],
+            [8.558594, 47.402742],
+            [8.558594, 47.400242],
+            [8.556594, 47.398242],
+            [8.552594, 47.398242],
+            [8.550594, 47.400242],
+            [8.550594, 47.402742],
+            [8.552594, 47.404742]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Temporary Flight Restriction - Event",
+        "zone_type": "tfr",
+        "airspace_class": "TFR",
+        "floor_ft_msl": 0,
+        "ceiling_ft_msl": 3000
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [8.543594, 47.393242],
+            [8.547594, 47.393242],
+            [8.549094, 47.391242],
+            [8.547594, 47.389242],
+            [8.543594, 47.389242],
+            [8.542094, 47.391242],
+            [8.543594, 47.393242]
+          ]
+        ]
+      }
+    }
+  ]
+}

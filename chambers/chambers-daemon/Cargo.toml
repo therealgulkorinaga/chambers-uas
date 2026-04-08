@@ -1,0 +1,17 @@
+[package]
+name = "chambers-daemon"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+
+[[bin]]
+name = "chambers-daemon"
+path = "src/main.rs"
+
+[dependencies]
+chambers-core.workspace = true
+clap.workspace = true
+ctrlc = { version = "3", features = ["termination"] }
+tracing.workspace = true
+tracing-subscriber.workspace = true
+serde_json.workspace = true

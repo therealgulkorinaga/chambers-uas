@@ -1,0 +1,13 @@
+[package]
+name = "chambers-verify"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+
+[[bin]]
+name = "chambers-verify"
+path = "src/main.rs"
+
+[dependencies]
+chambers-core.workspace = true
+clap.workspace = true

@@ -1,0 +1,32 @@
+# Rust
+/chambers/target/
+**/*.rs.bk
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+*.egg-info/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Environment
+.env
+*.env.local
+
+# Session data (NEVER commit)
+/sessions/
+/audit_logs/
+
+# Docker
+.docker/
+
+.claude/
