@@ -1168,3 +1168,5 @@ All three modes should produce audit log entries with corresponding anomaly patt
 | ANM-004 | Undeclared Memory Write | Process writes to virtual address range not declared in memory map (kernel-space detection) | High |
 | ANM-005 | Burst-Exfil Correlation | ≥10 undeclared camera reads within a 500ms window, overlapping with a `CHAMBERS_BLOCKED` firewall event within ±2 seconds | Critical |
 | ANM-006 | Firmware Update Camera Access | Camera device accessed while a firmware update (`MAV_CMD_PREFLIGHT_REBOOT_SHUTDOWN`) is in progress | High |
+
+---
